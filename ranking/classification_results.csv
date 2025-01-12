@@ -1,0 +1,7 @@
+Vectorizer,Classifier,Train Accuracy,Test Accuracy,Test F1-Score
+CountVectorizer,LogisticRegression,0.99832,0.86664,0.8655753568260625
+CountVectorizer,SVM,0.917,0.86204,0.8634978430363716
+CountVectorizer,NaiveBayes,0.89812,0.81356,0.8005648025330537
+TfidfVectorizer,LogisticRegression,0.932,0.88292,0.8827464647678565
+TfidfVectorizer,SVM,0.99012,0.8872,0.8866103739445115
+TfidfVectorizer,NaiveBayes,0.90892,0.82956,0.8187656841478457
