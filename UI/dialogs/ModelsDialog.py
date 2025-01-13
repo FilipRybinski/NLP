@@ -3,7 +3,6 @@ import os
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QLabel, QHBoxLayout, QPushButton, QMessageBox
 
 from constants.constants import DICTIONARY
-from utils.utils import load_model
 
 
 class ModelsDialog(QDialog):
@@ -47,29 +46,24 @@ class ModelsDialog(QDialog):
             QMessageBox.critical(self, "Error", "The 'models' directory does not exist!")
 
     def select_file(self, item):
-        directory = os.path.join(os.getcwd(), DICTIONARY.MODELS_PATH)
-        vectorizer_name = item.text().split("_")[1]
-        classifier_name = item.text().split("_")[0]
-        self.classifier_path = os.path.join(directory, item.text())
-        self.classifier_name = classifier_name
-        self.vectorizer_name = vectorizer_name
-        self.vectorizer_path = f"{DICTIONARY.MODELS_PATH}/{DICTIONARY.VECTORIZER_PATH}/{vectorizer_name}_{DICTIONARY.VECTORIZER_FILE}{DICTIONARY.JOBLIB_EXTENSION}"
+        self.set_properties(item.text())
         QMessageBox.information(self, "File Selected", f"You selected: {self.classifier_path}")
         self.accept()
 
     def apply_selection(self):
         selected_item = self.file_list.currentItem()
         if selected_item:
-            directory = os.path.join(os.getcwd(), DICTIONARY.MODELS_PATH)
-            vectorizer_name = selected_item.text().split("_")[1]
-            classifier_name = selected_item.text().split("_")[0]
-            self.classifier_path = os.path.join(directory, selected_item.text())
-            self.classifier_name = classifier_name
-            self.vectorizer_name = vectorizer_name
-            self.vectorizer_path = f"{DICTIONARY.MODELS_PATH}/{DICTIONARY.VECTORIZER_PATH}/{vectorizer_name}_{DICTIONARY.VECTORIZER_FILE}{DICTIONARY.JOBLIB_EXTENSION}"
+            self.set_properties(selected_item.text())
             QMessageBox.information(self, "File Selected", f"You selected: {self.classifier_path}")
             self.accept()
         else:
             QMessageBox.warning(self, "No Selection", "Please select a file from the list.")
-    
-       
+
+    def set_properties(self, name):
+        directory = os.path.join(os.getcwd(), DICTIONARY.MODELS_PATH)
+        vectorizer_name = name.split("_")[1]
+        classifier_name = name.split("_")[0]
+        self.classifier_name = classifier_name
+        self.vectorizer_name = vectorizer_name
+        self.classifier_path = os.path.join(directory, name)
+        self.vectorizer_path = os.path.join(DICTIONARY.MODELS_PATH,DICTIONARY.VECTORIZER_PATH,f"{vectorizer_name}_{DICTIONARY.VECTORIZER_FILE}.{DICTIONARY.JOBLIB_EXTENSION}")

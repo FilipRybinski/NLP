@@ -1,7 +1,10 @@
-Vectorizer,Classifier,Train Accuracy,Test Accuracy,Test F1-Score
-CountVectorizer,LogisticRegression,0.99832,0.86664,0.8655753568260625
-CountVectorizer,SVM,0.917,0.86204,0.8634978430363716
-CountVectorizer,NaiveBayes,0.89812,0.81356,0.8005648025330537
-TfidfVectorizer,LogisticRegression,0.932,0.88292,0.8827464647678565
-TfidfVectorizer,SVM,0.99012,0.8872,0.8866103739445115
-TfidfVectorizer,NaiveBayes,0.90892,0.82956,0.8187656841478457
+Vectorizer,Classifier,Train Accuracy,Test Accuracy,Test F1 Score
+TfidfVectorizer,LogisticRegression,0.93784,0.88736,0.8878623765530423
+TfidfVectorizer,SVM,0.96444,0.8816,0.8813912485975317
+CountVectorizer,LogisticRegression,0.9992,0.8694,0.8694365577638261
+HashingVectorizer,LogisticRegression,0.8888,0.85552,0.8564730191528253
+CountVectorizer,NaiveBayes,0.8904,0.8554,0.8534360429758767
+TfidfVectorizer,NaiveBayes,0.90356,0.85236,0.8497944898872747
+CountVectorizer,SVM,1.0,0.84828,0.8472842935942344
+HashingVectorizer,NaiveBayes,0.8742,0.8396,0.8402899474271148
+HashingVectorizer,SVM,0.92668,0.46576,0.4600145548637503
