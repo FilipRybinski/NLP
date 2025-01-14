@@ -9,40 +9,38 @@ from sklearn.svm import SVC
 from concurrent.futures import ThreadPoolExecutor
 from constants.constants import DICTIONARY
 
-# Wektoryzacja
 VECTORIZERS = {
     "CountVectorizer": CountVectorizer(
-        max_features=20000,  # Użycie ograniczonej liczby cech
-        ngram_range=(1, 2),  # Unigramy i bigramy
-        stop_words="english",  # Usuwanie stop words
-        binary=True  # Wartości binarne dla lepszej klasyfikacji sentymentu
+        max_features=20000,
+        ngram_range=(1, 2),
+        stop_words="english",
+        binary=True
     ),
     "TfidfVectorizer": TfidfVectorizer(
-        max_features=20000,  # Użycie ograniczonej liczby cech
-        ngram_range=(1, 2),  # Unigramy i bigramy
-        stop_words="english",  # Usuwanie stop words
-        sublinear_tf=True  # Skalowanie TF w trybie sublinearnym
+        max_features=20000,
+        ngram_range=(1, 2),
+        stop_words="english",
+        sublinear_tf=True
     ),
     "HashingVectorizer": HashingVectorizer(
-        n_features=20000,  # Większa liczba cech dla lepszego modelu
-        alternate_sign=False,  # Wyłączenie naprzemiennych znaków, aby dopasować się do modeli, które oczekują tylko dodatnich wartości
-        ngram_range=(1, 2)  # Unigramy i bigramy
+        n_features=20000,
+        alternate_sign=False,
+        ngram_range=(1, 2)
     ),
 }
 
-# Klasyfikatory
 CLASSIFIERS = {
     "LogisticRegression": LogisticRegression(
-        max_iter=2000,  # Większa liczba iteracji, aby zapewnić konwergencję
-        solver="liblinear",  # Solver dobry dla małych i średnich zbiorów danych
-        C=1.0  # Współczynnik regularyzacji (1.0 to domyślna wartość)
+        max_iter=2000,
+        solver="liblinear",
+        C=1.0
     ),
     "SVM": SVC(
-        kernel="linear",  # Kernel liniowy sprawdza się dobrze przy tekstach
-        C=1.0  # Współczynnik regularyzacji
+        kernel="linear",
+        C=1.0
     ),
     "NaiveBayes": MultinomialNB(
-        alpha=0.1  # Lekka regularyzacja Laplace'a dla uniknięcia problemów z rzadkimi słowami
+        alpha=0.1
     ),
 }
 
@@ -87,7 +85,6 @@ def create_models(rootDir):
 
     save_rate_model(all_results, rootDir)
 
-
 def load_data(data_dir):
     reviews, labels = [], []
     for label in ["pos", "neg"]:
@@ -99,14 +96,11 @@ def load_data(data_dir):
                 labels.append(1 if label == "pos" else 0)
     return reviews, labels
 
-
 def make_model_dir(rootDir):
     os.makedirs(adjust_path(f"{DICTIONARY.MODELS_PATH}/{DICTIONARY.VECTORIZER_PATH}", condition=rootDir), exist_ok=True)
 
-
 def transform_data(vectorizer, train_reviews, test_reviews):
     return vectorizer.fit_transform(train_reviews), vectorizer.transform(test_reviews)
-
 
 def save_vectorizer(vectorizer, vectorizer_filename):
     try:
@@ -114,13 +108,11 @@ def save_vectorizer(vectorizer, vectorizer_filename):
     except Exception as e:
         print(f"Error saving vectorizer: {e}")
 
-
 def save_model(classifier, model_filename):
     try:
         dump(classifier, model_filename)
     except Exception as e:
         print(f"Error saving model: {e}")
-
 
 def rate_model(train_pred, test_pred, vec_name, clf_name, train_labels, test_labels):
     try:
@@ -140,7 +132,6 @@ def rate_model(train_pred, test_pred, vec_name, clf_name, train_labels, test_lab
         print(f"Error rating model: {e}")
         return []
 
-
 def save_rate_model(results, rootDir):
     try:
         results_df = pd.DataFrame(results)
@@ -149,7 +140,6 @@ def save_rate_model(results, rootDir):
         results_df.to_csv(output_path, index=False)
     except Exception as e:
         print(f"Error saving model results: {e}")
-
 
 def adjust_path(base_path, condition=True):
     return os.path.join("..", base_path) if condition else base_path

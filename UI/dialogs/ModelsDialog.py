@@ -3,6 +3,8 @@ import os
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QListWidget, QLabel, QHBoxLayout, QPushButton, QMessageBox
 
 from constants.constants import DICTIONARY
+from constants.errors import Errors
+from constants.placeholders import Placeholders
 
 
 class ModelsDialog(QDialog):
@@ -41,20 +43,20 @@ class ModelsDialog(QDialog):
                 files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
                 self.file_list.addItems(files)
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to list files: {e}")
+                QMessageBox.critical(self, Errors.Error, f"Failed to list files: {e}")
         else:
-            QMessageBox.critical(self, "Error", "The 'models' directory does not exist!")
+            QMessageBox.critical(self, Errors.Error, "The 'models' directory does not exist!")
 
     def select_file(self, item):
         self.set_properties(item.text())
-        QMessageBox.information(self, "File Selected", f"You selected: {self.classifier_path}")
+        QMessageBox.information(self, Placeholders.FILE_SELECTED, f"You selected: {self.classifier_path}")
         self.accept()
 
     def apply_selection(self):
         selected_item = self.file_list.currentItem()
         if selected_item:
             self.set_properties(selected_item.text())
-            QMessageBox.information(self, "File Selected", f"You selected: {self.classifier_path}")
+            QMessageBox.information(self, Placeholders.FILE_SELECTED, f"You selected: {self.classifier_path}")
             self.accept()
         else:
             QMessageBox.warning(self, "No Selection", "Please select a file from the list.")

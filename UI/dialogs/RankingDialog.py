@@ -12,6 +12,7 @@ class ModelsRankingDialog(QDialog):
         self.layout.addWidget(self.table)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.setSortingEnabled(True)
         self.load_csv(data)
 
     def load_csv(self, data):
