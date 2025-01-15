@@ -10,37 +10,95 @@ from concurrent.futures import ThreadPoolExecutor
 from constants.constants import DICTIONARY
 
 VECTORIZERS = {
-    "CountVectorizer": CountVectorizer(
+    "CountVectorizerMax20000Ngram12StopEnglishBinaryTrue": CountVectorizer(
         max_features=20000,
         ngram_range=(1, 2),
         stop_words="english",
         binary=True
     ),
-    "TfidfVectorizer": TfidfVectorizer(
+    "CountVectorizerMax10000Ngram11StopNoneBinaryFalse": CountVectorizer(
+        max_features=10000,
+        ngram_range=(1, 1),
+        stop_words=None,
+        binary=False
+    ),
+    "CountVectorizerMax5000Ngram23StopEnglishBinaryTrue": CountVectorizer(
+        max_features=5000,
+        ngram_range=(2, 3),
+        stop_words="english",
+        binary=True
+    ),
+    "TfidfVectorizerMax20000Ngram12StopEnglishSublinearTrue": TfidfVectorizer(
         max_features=20000,
         ngram_range=(1, 2),
         stop_words="english",
         sublinear_tf=True
     ),
-    "HashingVectorizer": HashingVectorizer(
+    "TfidfVectorizerMax15000Ngram11StopNoneSublinearFalse": TfidfVectorizer(
+        max_features=15000,
+        ngram_range=(1, 1),
+        stop_words=None,
+        sublinear_tf=False
+    ),
+    "TfidfVectorizerMax10000Ngram22StopEnglishSublinearTrue": TfidfVectorizer(
+        max_features=10000,
+        ngram_range=(2, 2),
+        stop_words="english",
+        sublinear_tf=True
+    ),
+    "HashingVectorizerFeatures20000Ngram12AltSignFalse": HashingVectorizer(
         n_features=20000,
         alternate_sign=False,
         ngram_range=(1, 2)
     ),
+    "HashingVectorizerFeatures15000Ngram11AltSignTrue": HashingVectorizer(
+        n_features=15000,
+        alternate_sign=True,
+        ngram_range=(1, 1)
+    ),
+    "HashingVectorizerFeatures10000Ngram23AltSignFalse": HashingVectorizer(
+        n_features=10000,
+        alternate_sign=False,
+        ngram_range=(2, 3)
+    ),
 }
 
 CLASSIFIERS = {
-    "LogisticRegression": LogisticRegression(
+    "LogisticRegressionMaxIter2000SolverLiblinearC1.0": LogisticRegression(
         max_iter=2000,
         solver="liblinear",
         C=1.0
     ),
-    "SVM": SVC(
+    "LogisticRegressionMaxIter1000SolverSagaC0.5": LogisticRegression(
+        max_iter=1000,
+        solver="saga",
+        C=0.5
+    ),
+    "LogisticRegressionMaxIter500SolverLbfgsC2.0": LogisticRegression(
+        max_iter=500,
+        solver="lbfgs",
+        C=2.0
+    ),
+    "SVMKernelLinearC1.0": SVC(
         kernel="linear",
         C=1.0
     ),
-    "NaiveBayes": MultinomialNB(
+    "SVMKernelRbfC0.5": SVC(
+        kernel="rbf",
+        C=0.5
+    ),
+    "SVMKernelPolyC2.0": SVC(
+        kernel="poly",
+        C=2.0
+    ),
+    "NaiveBayesAlpha0.1": MultinomialNB(
         alpha=0.1
+    ),
+    "NaiveBayesAlpha0.5": MultinomialNB(
+        alpha=0.5
+    ),
+    "NaiveBayesAlpha1.0": MultinomialNB(
+        alpha=1.0
     ),
 }
 
