@@ -8,7 +8,11 @@ from joblib import dump
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import SVC
 from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from constants.constants import DICTIONARY
+
+# Global lock for thread safety
+lock = Lock()
 
 VECTORIZERS = {
     "CountVectorizer_Ngram11": CountVectorizer(
@@ -100,12 +104,12 @@ CLASSIFIERS = {
     ),
 }
 
-def process_model(vectorizer, vec_name, train_reviews, test_reviews, train_labels, test_labels, rootDir):
+def process_model(vectorizer, vec_name, train_reviews, test_reviews, train_labels, test_labels, rootDir, all_results):
     train, test = transform_data(vectorizer, train_reviews, test_reviews)
 
     if train.shape[1] != test.shape[1]:
         print(f"Feature mismatch for {vec_name}: train ({train.shape[1]}), test ({test.shape[1]})")
-        return []
+        return
 
     scaler = StandardScaler(with_mean=False)  # Skalowanie danych
     train = scaler.fit_transform(train)
@@ -117,7 +121,6 @@ def process_model(vectorizer, vec_name, train_reviews, test_reviews, train_label
         condition=rootDir,
     )
     save_vectorizer(vectorizer, vectorizer_filename)
-    results = []
 
     for clf_name, classifier in CLASSIFIERS.items():
         try:
@@ -136,11 +139,18 @@ def process_model(vectorizer, vec_name, train_reviews, test_reviews, train_label
             train_pred = classifier.predict(train)
             test_pred = classifier.predict(test)
 
-            results.extend(rate_model(train_pred, test_pred, vec_name, clf_name, train_labels, test_labels))
+            results = rate_model(train_pred, test_pred, vec_name, clf_name, train_labels, test_labels)
+
+            # Dodanie wyników w sposób bezpieczny wątkowo
+            with lock:
+                all_results.extend(results)
+
+            # Zapis wyników po przetworzeniu każdego modelu do CSV
+            with lock:
+                save_rate_model_to_csv(all_results, rootDir)
         except ValueError as e:
             print(f"Error training classifier {clf_name} with vectorizer {vec_name}: {e}")
             continue
-    return results
 
 def create_models(rootDir):
     train_reviews, train_labels = load_data(adjust_path(os.path.join(DICTIONARY.DATA_PATH, DICTIONARY.TRAIN_PATH), condition=rootDir))
@@ -151,14 +161,12 @@ def create_models(rootDir):
 
     with ThreadPoolExecutor() as executor:
         futures = [
-            executor.submit(process_model, vectorizer, vec_name, train_reviews, test_reviews, train_labels, test_labels, rootDir)
+            executor.submit(process_model, vectorizer, vec_name, train_reviews, test_reviews, train_labels, test_labels, rootDir, all_results)
             for vec_name, vectorizer in VECTORIZERS.items()
         ]
 
         for future in futures:
-            all_results.extend(future.result())
-
-    save_rate_model(all_results, rootDir)
+            future.result()
 
 def load_data(data_dir):
     reviews, labels = [], []
@@ -207,14 +215,14 @@ def rate_model(train_pred, test_pred, vec_name, clf_name, train_labels, test_lab
         print(f"Error rating model: {e}")
         return []
 
-def save_rate_model(results, rootDir):
+def save_rate_model_to_csv(results, rootDir):
     try:
         results_df = pd.DataFrame(results)
         results_df.sort_values(by=DICTIONARY.TEST_ACCURACY, ascending=False, inplace=True)
-        output_path = adjust_path(os.path.join(DICTIONARY.MODELS_RANKING_PATH, f"{DICTIONARY.CLASSIFICATION_RESULT_FILE}.{DICTIONARY.CSV_EXTENSION}"), condition=rootDir)
+        output_path = adjust_path(os.path.join(DICTIONARY.MODELS_RANKING_PATH, f"{DICTIONARY.CLASSIFICATION_RESULT_FILE}.csv"), condition=rootDir)
         results_df.to_csv(output_path, index=False)
     except Exception as e:
-        print(f"Error saving model results: {e}")
+        print(f"Error saving model results to CSV: {e}")
 
 def adjust_path(base_path, condition=True):
     return os.path.join("..", base_path) if condition else base_path
