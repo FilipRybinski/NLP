@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, HashingVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score
+from sklearn.preprocessing import StandardScaler
 from joblib import dump
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import SVC
@@ -10,119 +11,135 @@ from concurrent.futures import ThreadPoolExecutor
 from constants.constants import DICTIONARY
 
 VECTORIZERS = {
-    "CountVectorizerMax20000Ngram12StopEnglishBinaryTrue": CountVectorizer(
-        max_features=20000,
-        ngram_range=(1, 2),
-        stop_words="english",
-        binary=True
-    ),
-    "CountVectorizerMax10000Ngram11StopNoneBinaryFalse": CountVectorizer(
-        max_features=10000,
+    "CountVectorizer_Ngram11": CountVectorizer(
+        max_features=300,
         ngram_range=(1, 1),
-        stop_words=None,
-        binary=False
+        stop_words="english"
     ),
-    "CountVectorizerMax5000Ngram23StopEnglishBinaryTrue": CountVectorizer(
-        max_features=5000,
-        ngram_range=(2, 3),
-        stop_words="english",
-        binary=True
+    "CountVectorizer_Ngram12": CountVectorizer(
+        max_features=600,
+        ngram_range=(1, 2),
+        stop_words="english"
     ),
-    "TfidfVectorizerMax20000Ngram12StopEnglishSublinearTrue": TfidfVectorizer(
-        max_features=20000,
+    "CountVectorizer_Ngram21": CountVectorizer(
+        max_features=900,
+        ngram_range=(2, 1),
+        stop_words=None
+    ),
+    "TfidfVectorizer_Ngram12": TfidfVectorizer(
+        max_features=300,
         ngram_range=(1, 2),
         stop_words="english",
         sublinear_tf=True
     ),
-    "TfidfVectorizerMax15000Ngram11StopNoneSublinearFalse": TfidfVectorizer(
-        max_features=15000,
-        ngram_range=(1, 1),
-        stop_words=None,
-        sublinear_tf=False
-    ),
-    "TfidfVectorizerMax10000Ngram22StopEnglishSublinearTrue": TfidfVectorizer(
-        max_features=10000,
+    "TfidfVectorizer_Ngram22": TfidfVectorizer(
+        max_features=600,
         ngram_range=(2, 2),
         stop_words="english",
+        sublinear_tf=False
+    ),
+    "TfidfVectorizer_Ngram11": TfidfVectorizer(
+        max_features=450,
+        ngram_range=(1, 1),
+        stop_words=None,
         sublinear_tf=True
     ),
-    "HashingVectorizerFeatures20000Ngram12AltSignFalse": HashingVectorizer(
-        n_features=20000,
+    "HashingVectorizer_Ngram11": HashingVectorizer(
+        n_features=300,
         alternate_sign=False,
-        ngram_range=(1, 2)
-    ),
-    "HashingVectorizerFeatures15000Ngram11AltSignTrue": HashingVectorizer(
-        n_features=15000,
-        alternate_sign=True,
         ngram_range=(1, 1)
     ),
-    "HashingVectorizerFeatures10000Ngram23AltSignFalse": HashingVectorizer(
-        n_features=10000,
+    "HashingVectorizer_Ngram12": HashingVectorizer(
+        n_features=450,
+        alternate_sign=True,
+        ngram_range=(1, 2)
+    ),
+    "HashingVectorizer_Ngram22": HashingVectorizer(
+        n_features=600,
         alternate_sign=False,
-        ngram_range=(2, 3)
+        ngram_range=(2, 2)
     ),
 }
 
 CLASSIFIERS = {
-    "LogisticRegressionMaxIter2000SolverLiblinearC1.0": LogisticRegression(
-        max_iter=2000,
-        solver="liblinear",
-        C=1.0
-    ),
-    "LogisticRegressionMaxIter1000SolverSagaC0.5": LogisticRegression(
-        max_iter=1000,
-        solver="saga",
-        C=0.5
-    ),
-    "LogisticRegressionMaxIter500SolverLbfgsC2.0": LogisticRegression(
-        max_iter=500,
+    "LogisticRegression_SolverLbfgs": LogisticRegression(
         solver="lbfgs",
-        C=2.0
+        C=0.5,
+        max_iter=300
     ),
-    "SVMKernelLinearC1.0": SVC(
+    "LogisticRegression_SolverSaga": LogisticRegression(
+        solver="saga",
+        C=0.3,
+        max_iter=300
+    ),
+    "LogisticRegression_SolverLiblinear": LogisticRegression(
+        solver="liblinear",
+        C=0.7,
+        max_iter=200
+    ),
+    "SVM_LinearKernel_C0.1": SVC(
         kernel="linear",
-        C=1.0
+        C=0.1
     ),
-    "SVMKernelRbfC0.5": SVC(
-        kernel="rbf",
+    "SVM_LinearKernel_C0.5": SVC(
+        kernel="linear",
         C=0.5
     ),
-    "SVMKernelPolyC2.0": SVC(
-        kernel="poly",
-        C=2.0
+    "SVM_RbfKernel_C0.3": SVC(
+        kernel="rbf",
+        C=0.3
     ),
-    "NaiveBayesAlpha0.1": MultinomialNB(
-        alpha=0.1
-    ),
-    "NaiveBayesAlpha0.5": MultinomialNB(
-        alpha=0.5
-    ),
-    "NaiveBayesAlpha1.0": MultinomialNB(
+    "NaiveBayes_Alpha1.0": MultinomialNB(
         alpha=1.0
+    ),
+    "NaiveBayes_Alpha0.3": MultinomialNB(
+        alpha=0.3
+    ),
+    "NaiveBayes_Alpha0.7": MultinomialNB(
+        alpha=0.7
     ),
 }
 
 def process_model(vectorizer, vec_name, train_reviews, test_reviews, train_labels, test_labels, rootDir):
     train, test = transform_data(vectorizer, train_reviews, test_reviews)
+
+    if train.shape[1] != test.shape[1]:
+        print(f"Feature mismatch for {vec_name}: train ({train.shape[1]}), test ({test.shape[1]})")
+        return []
+
+    scaler = StandardScaler(with_mean=False)  # Skalowanie danych
+    train = scaler.fit_transform(train)
+    test = scaler.transform(test)
+
     vectorizer_filename = adjust_path(
-        os.path.join(DICTIONARY.MODELS_PATH, DICTIONARY.VECTORIZER_PATH, f"{vec_name}_{DICTIONARY.VECTORIZER_FILE}.{DICTIONARY.JOBLIB_EXTENSION}"),
+        os.path.join(DICTIONARY.MODELS_PATH, DICTIONARY.VECTORIZER_PATH,
+                     f"{vec_name}_{DICTIONARY.VECTORIZER_FILE}.{DICTIONARY.JOBLIB_EXTENSION}"),
         condition=rootDir,
     )
     save_vectorizer(vectorizer, vectorizer_filename)
     results = []
 
     for clf_name, classifier in CLASSIFIERS.items():
-        model_filename = adjust_path(
-            os.path.join(DICTIONARY.MODELS_PATH, f"{clf_name}_{vec_name}_{DICTIONARY.MODEL_FILE}.{DICTIONARY.JOBLIB_EXTENSION}"),
-            condition=rootDir,
-        )
-        classifier.fit(train, train_labels)
-        save_model(classifier, model_filename)
+        try:
+            model_filename = adjust_path(
+                os.path.join(DICTIONARY.MODELS_PATH,
+                             f"{clf_name}_{vec_name}_{DICTIONARY.MODEL_FILE}.{DICTIONARY.JOBLIB_EXTENSION}"),
+                condition=rootDir,
+            )
+            classifier.fit(train, train_labels)
+            try:
+                save_model(classifier, model_filename)
+            except Exception as e:
+                print(f"Error saving model {clf_name} with vectorizer {vec_name}: {e}")
+                continue
 
-        train_pred = classifier.predict(train)
-        test_pred = classifier.predict(test)
+            train_pred = classifier.predict(train)
+            test_pred = classifier.predict(test)
 
-        results.extend(rate_model(train_pred, test_pred, vec_name, clf_name, train_labels, test_labels))
+            results.extend(rate_model(train_pred, test_pred, vec_name, clf_name, train_labels, test_labels))
+        except ValueError as e:
+            print(f"Error training classifier {clf_name} with vectorizer {vec_name}: {e}")
+            continue
     return results
 
 def create_models(rootDir):
